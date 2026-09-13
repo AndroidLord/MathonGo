@@ -86,6 +86,7 @@ fun OptionCard(
                 html = contentHtml,
                 color = colors.content,
                 textStyle = MaterialTheme.typography.bodyMedium,
+                interactive = false,
                 modifier = Modifier.weight(1f),
             )
         }

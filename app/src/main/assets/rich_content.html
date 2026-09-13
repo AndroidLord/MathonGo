@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: __TEXT_COLOR__;
+    font-family: -apple-system, Roboto, "Helvetica Neue", sans-serif;
+    font-size: __FONT_SIZE__px;
+    line-height: __LINE_HEIGHT__;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    -webkit-text-size-adjust: 100%;
+  }
+  #root > *:first-child { margin-top: 0; }
+  #root > *:last-child { margin-bottom: 0; }
+  p { margin: 0 0 0.55em 0; }
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.5em 0;
+    border-radius: 6px;
+  }
+  img.broken { display: none; }
+  a { color: __LINK_COLOR__; }
+  table {
+    border-collapse: collapse;
+    width: auto;
+    margin: 0.5em 0;
+  }
+  th, td {
+    border: 1px solid __BORDER_COLOR__;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+  mjx-container[display="true"] { margin: 0.6em 0; }
+  mjx-container svg { max-width: 100%; }
+</style>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    options: {
+      enableMenu: false,
+      menuOptions: { settings: { inTabOrder: false } }
+    },
+    svg: { fontCache: 'local' },
+    startup: {
+      typeset: true,
+      pageReady: function () {
+        return MathJax.startup.defaultPageReady()
+          .then(reportReady)
+          .catch(reportReady);
+      }
+    }
+  };
+
+  function currentHeight() {
+    var root = document.getElementById('root');
+    var rect = root ? root.getBoundingClientRect() : null;
+    return Math.ceil(Math.max(
+      rect ? rect.height : 0,
+      document.body ? document.body.scrollHeight : 0
+    ));
+  }
+
+  function postHeight() {
+    if (window.AndroidBridge && window.AndroidBridge.onHeightChanged) {
+      window.AndroidBridge.onHeightChanged(currentHeight());
+    }
+  }
+
+  function reportReady() {
+    postHeight();
+    if (window.AndroidBridge && window.AndroidBridge.onRenderComplete) {
+      window.AndroidBridge.onRenderComplete();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Hide images that never arrive rather than leaving a broken-image box.
+    Array.prototype.forEach.call(document.images, function (img) {
+      img.addEventListener('error', function () {
+        img.classList.add('broken');
+        postHeight();
+      });
+      img.addEventListener('load', postHeight);
+    });
+
+    // Wrap wide tables so they scroll inside themselves instead of widening the page.
+    Array.prototype.forEach.call(document.querySelectorAll('table'), function (table) {
+      var wrap = document.createElement('div');
+      wrap.className = 'table-scroll';
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(postHeight).observe(document.getElementById('root'));
+    }
+    postHeight();
+  });
+
+  window.addEventListener('load', postHeight);
+</script>
+<script src="mathjax/tex-mml-svg.js" id="MathJax-script"></script>
+</head>
+<body>
+<div id="root">__CONTENT__</div>
+</body>
+</html>

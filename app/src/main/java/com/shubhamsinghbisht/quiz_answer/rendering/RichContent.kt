@@ -2,34 +2,43 @@ package com.shubhamsinghbisht.quiz_answer.rendering
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.isSpecified
 
-// Placeholder renderer for the screen skeleton. Phase 8 replaces the body with the WebView
-// based MathContentWebView so HTML, LaTeX and MathML render properly.
 @Composable
 fun RichContent(
     html: String,
     modifier: Modifier = Modifier,
     textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     color: Color = LocalContentColor.current,
+    interactive: Boolean = true,
 ) {
-    Text(
-        text = html.asPlainTextPreview(),
-        style = textStyle,
-        color = color,
+    val scheme = MaterialTheme.colorScheme
+    val fontSizeSp = if (textStyle.fontSize.isSpecified) textStyle.fontSize.value else 16f
+    val lineHeight = if (textStyle.lineHeight.isSpecified) {
+        (textStyle.lineHeight.value / fontSizeSp).coerceIn(1.1f, 2f)
+    } else {
+        1.45f
+    }
+
+    val theme = remember(color, scheme, fontSizeSp, lineHeight) {
+        RichContentTheme(
+            textColor = color,
+            linkColor = scheme.primary,
+            borderColor = scheme.outlineVariant,
+            fontSizeSp = fontSizeSp,
+            lineHeight = lineHeight,
+        )
+    }
+
+    MathContentWebView(
+        html = html,
+        theme = theme,
         modifier = modifier,
+        interactive = interactive,
     )
 }
-
-private fun String.asPlainTextPreview(): String =
-    replace(Regex("<br\\s*/?>", RegexOption.IGNORE_CASE), "\n")
-        .replace(Regex("</p>", RegexOption.IGNORE_CASE), "\n")
-        .replace(Regex("<[^>]+>"), " ")
-        .replace("&nbsp;", " ")
-        .replace("&#160;", " ")
-        .replace(Regex("[ \\t]{2,}"), " ")
-        .trim()
