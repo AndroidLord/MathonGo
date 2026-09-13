@@ -12,13 +12,6 @@ data class AnswerRecord(
     val hasResponse: Boolean get() = selectedOptionIds.isNotEmpty() || numericalInput.isNotBlank()
 }
 
-enum class OptionVisualState {
-    NEUTRAL,
-    SELECTED,
-    CORRECT,
-    INCORRECT,
-}
-
 sealed interface QuestionUiState {
 
     data object Loading : QuestionUiState
@@ -39,22 +32,5 @@ sealed interface QuestionUiState {
         val canCheck: Boolean get() = answerState is QuestionAnswerState.Selected
         val isChecked: Boolean get() = record.checked
 
-        fun visualStateOf(optionId: String): OptionVisualState = when (val state = answerState) {
-            QuestionAnswerState.Unanswered -> OptionVisualState.NEUTRAL
-
-            is QuestionAnswerState.Selected ->
-                if (optionId in state.selectedOptionIds) OptionVisualState.SELECTED
-                else OptionVisualState.NEUTRAL
-
-            is QuestionAnswerState.CheckedCorrect ->
-                if (optionId in state.selectedOptionIds) OptionVisualState.CORRECT
-                else OptionVisualState.NEUTRAL
-
-            is QuestionAnswerState.CheckedIncorrect -> when {
-                optionId in state.correctOptionIds -> OptionVisualState.CORRECT
-                optionId in state.selectedOptionIds -> OptionVisualState.INCORRECT
-                else -> OptionVisualState.NEUTRAL
-            }
-        }
     }
 }

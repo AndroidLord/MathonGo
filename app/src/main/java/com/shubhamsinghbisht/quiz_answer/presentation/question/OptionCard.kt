@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.shubhamsinghbisht.quiz_answer.rendering.RichContent
 import com.shubhamsinghbisht.quiz_answer.ui.theme.optionColors
@@ -32,12 +28,13 @@ import com.shubhamsinghbisht.quiz_answer.ui.theme.optionColors
 fun OptionCard(
     label: String,
     contentHtml: String,
-    visualState: OptionVisualState,
+    optionId: String,
+    answerState: QuestionAnswerState,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = optionColors(visualState)
+    val colors = optionColors(answerState, optionId)
     val border by animateColorAsState(colors.border, label = "optionBorder")
     val container by animateColorAsState(colors.container, label = "optionContainer")
 
@@ -52,7 +49,7 @@ fun OptionCard(
             contentColor = colors.content,
             disabledContentColor = colors.content,
         ),
-        border = BorderStroke(if (visualState == OptionVisualState.NEUTRAL) 1.dp else 2.dp, border),
+        border = BorderStroke(if (colors.emphasized) 2.dp else 1.dp, border),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
@@ -67,18 +64,15 @@ fun OptionCard(
                 modifier = Modifier.size(28.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    when (visualState) {
-                        OptionVisualState.CORRECT -> Icon(
-                            Icons.Default.Check,
-                            contentDescription = "Correct",
+                    val icon = colors.badgeIcon
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        OptionVisualState.INCORRECT -> Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Incorrect",
-                            modifier = Modifier.size(18.dp),
-                        )
-                        else -> Text(label, style = MaterialTheme.typography.labelLarge)
+                    } else {
+                        Text(label, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

@@ -124,7 +124,8 @@ private fun QuestionBody(
                 OptionCard(
                     label = ('A' + index).toString(),
                     contentHtml = option.contentHtml,
-                    visualState = state.visualStateOf(option.id),
+                    optionId = option.id,
+                    answerState = state.answerState,
                     enabled = !state.isChecked,
                     onClick = { onOptionClick(option.id) },
                 )

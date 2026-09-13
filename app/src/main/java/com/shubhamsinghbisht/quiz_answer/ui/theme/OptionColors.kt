@@ -1,10 +1,14 @@
 package com.shubhamsinghbisht.quiz_answer.ui.theme
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.shubhamsinghbisht.quiz_answer.presentation.question.OptionVisualState
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.shubhamsinghbisht.quiz_answer.presentation.question.QuestionAnswerState
 
 @Immutable
 data class OptionColors(
@@ -13,42 +17,58 @@ data class OptionColors(
     val content: Color,
     val badgeContainer: Color,
     val badgeContent: Color,
+    val badgeIcon: ImageVector?,
+    val emphasized: Boolean,
 )
 
 @Composable
-fun optionColors(state: OptionVisualState): OptionColors {
+fun optionColors(answerState: QuestionAnswerState, optionId: String): OptionColors {
     val scheme = MaterialTheme.colorScheme
-    val dark = LocalIsDarkTheme.current
-    val palette = if (dark) DarkFeedback else LightFeedback
+    val palette = if (LocalIsDarkTheme.current) DarkFeedback else LightFeedback
 
-    return when (state) {
-        OptionVisualState.NEUTRAL -> OptionColors(
-            container = scheme.surface,
-            border = scheme.outlineVariant,
-            content = scheme.onSurface,
-            badgeContainer = scheme.surfaceVariant,
-            badgeContent = scheme.onSurfaceVariant,
-        )
-        OptionVisualState.SELECTED -> OptionColors(
-            container = palette.selectedContainer,
-            border = palette.selected,
-            content = scheme.onSurface,
-            badgeContainer = palette.selected,
-            badgeContent = palette.onAccent,
-        )
-        OptionVisualState.CORRECT -> OptionColors(
-            container = palette.correctContainer,
-            border = palette.correct,
-            content = scheme.onSurface,
-            badgeContainer = palette.correct,
-            badgeContent = palette.onAccent,
-        )
-        OptionVisualState.INCORRECT -> OptionColors(
-            container = palette.incorrectContainer,
-            border = palette.incorrect,
-            content = scheme.onSurface,
-            badgeContainer = palette.incorrect,
-            badgeContent = palette.onAccent,
-        )
+    val neutral = OptionColors(
+        container = scheme.surface,
+        border = scheme.outlineVariant,
+        content = scheme.onSurface,
+        badgeContainer = scheme.surfaceVariant,
+        badgeContent = scheme.onSurfaceVariant,
+        badgeIcon = null,
+        emphasized = false,
+    )
+
+    fun accented(accent: Color, container: Color, icon: ImageVector?) = OptionColors(
+        container = container,
+        border = accent,
+        content = scheme.onSurface,
+        badgeContainer = accent,
+        badgeContent = palette.onAccent,
+        badgeIcon = icon,
+        emphasized = true,
+    )
+
+    return when (answerState) {
+        QuestionAnswerState.Unanswered -> neutral
+
+        is QuestionAnswerState.Selected ->
+            if (optionId in answerState.selectedOptionIds) {
+                accented(palette.selected, palette.selectedContainer, icon = null)
+            } else {
+                neutral
+            }
+
+        is QuestionAnswerState.CheckedCorrect ->
+            if (optionId in answerState.selectedOptionIds) {
+                accented(palette.correct, palette.correctContainer, Icons.Default.Check)
+            } else {
+                neutral
+            }
+
+        is QuestionAnswerState.CheckedIncorrect -> when (optionId) {
+            in answerState.correctOptionIds ->
+                accented(palette.correct, palette.correctContainer, Icons.Default.Check)
+            in answerState.selectedOptionIds ->
+                accented(palette.incorrect, palette.incorrectContainer, Icons.Default.Close)
+            else -> neutral
+        }
     }
 }
