@@ -229,7 +229,6 @@ app/build/outputs/apk/debug/app-debug.apk
 
 ## Known limitations
 
-- No automated tests
 - Video solutions show an indicator only; playback is not implemented
 - `multipleCorrect` and `numerical` reuse the single-correct check flow; there is no partial credit
 - Answers are not persisted across app restarts, only across configuration changes and process death
