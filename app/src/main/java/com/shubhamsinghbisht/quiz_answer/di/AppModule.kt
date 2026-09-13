@@ -14,5 +14,11 @@ object AppModule {
     @Provides
     @Singleton
     fun provideQuestionFlowConfig(): QuestionFlowConfig =
-        QuestionFlowConfig(supportedTypes = setOf(QuestionType.SINGLE_CORRECT))
+        QuestionFlowConfig(
+            supportedTypes = setOf(
+                QuestionType.SINGLE_CORRECT,
+                QuestionType.MULTIPLE_CORRECT,
+                QuestionType.NUMERICAL,
+            ),
+        )
 }

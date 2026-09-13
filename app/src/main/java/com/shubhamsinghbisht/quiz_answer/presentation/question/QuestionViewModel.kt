@@ -118,6 +118,12 @@ class QuestionViewModel @Inject constructor(
     ): QuestionAnswerState = when {
         !record.checked && !record.hasResponse -> QuestionAnswerState.Unanswered
         !record.checked -> QuestionAnswerState.Selected(record.selectedOptionIds)
+        question.type == QuestionType.NUMERICAL ->
+            if (AnswerChecker.isNumericalCorrect(question, record.numericalInput)) {
+                QuestionAnswerState.CheckedCorrect(record.selectedOptionIds)
+            } else {
+                QuestionAnswerState.CheckedIncorrect(emptySet(), emptySet())
+            }
         AnswerChecker.isCorrect(question, record.selectedOptionIds) ->
             QuestionAnswerState.CheckedCorrect(record.selectedOptionIds)
         else -> QuestionAnswerState.CheckedIncorrect(

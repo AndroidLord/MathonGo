@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionType
 
 @Composable
 fun QuestionScreen(
@@ -32,6 +33,7 @@ fun QuestionScreen(
         state = state,
         onBack = onBack,
         onOptionClick = viewModel::onOptionClicked,
+        onNumericalInputChange = viewModel::onNumericalInputChanged,
         onCheck = viewModel::onCheckAnswer,
         onPrevious = viewModel::onPrevious,
         onNext = viewModel::onNext,
@@ -45,6 +47,7 @@ fun QuestionScreen(
     state: QuestionUiState,
     onBack: () -> Unit,
     onOptionClick: (String) -> Unit,
+    onNumericalInputChange: (String) -> Unit,
     onCheck: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
@@ -95,6 +98,7 @@ fun QuestionScreen(
                 is QuestionUiState.Ready -> QuestionBody(
                     state = state,
                     onOptionClick = onOptionClick,
+                    onNumericalInputChange = onNumericalInputChange,
                 )
             }
         }
@@ -105,6 +109,7 @@ fun QuestionScreen(
 private fun QuestionBody(
     state: QuestionUiState.Ready,
     onOptionClick: (String) -> Unit,
+    onNumericalInputChange: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -119,24 +124,32 @@ private fun QuestionBody(
             totalQuestions = state.totalQuestions,
         )
 
-        if (state.question.options.isEmpty()) {
+        if (state.question.type == QuestionType.NUMERICAL) {
+            NumericalAnswerInput(
+                value = state.record.numericalInput,
+                answerState = state.answerState,
+                expectedAnswer = state.question.numericalAnswer?.rawValue,
+                enabled = !state.isChecked,
+                onValueChange = onNumericalInputChange,
+            )
+        } else if (state.question.options.isEmpty()) {
             Text(
                 text = "This question has no options to choose from.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            state.question.options.forEachIndexed { index, option ->
-                OptionCard(
-                    label = ('A' + index).toString(),
-                    contentHtml = option.contentHtml,
-                    optionId = option.id,
-                    answerState = state.answerState,
-                    enabled = !state.isChecked,
-                    onClick = { onOptionClick(option.id) },
-                )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                state.question.options.forEachIndexed { index, option ->
+                    OptionCard(
+                        label = ('A' + index).toString(),
+                        contentHtml = option.contentHtml,
+                        optionId = option.id,
+                        answerState = state.answerState,
+                        enabled = !state.isChecked,
+                        onClick = { onOptionClick(option.id) },
+                    )
+                }
             }
         }
     }
