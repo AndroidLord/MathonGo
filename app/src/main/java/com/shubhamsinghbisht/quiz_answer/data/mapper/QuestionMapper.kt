@@ -2,39 +2,62 @@ package com.shubhamsinghbisht.quiz_answer.data.mapper
 
 import com.shubhamsinghbisht.quiz_answer.data.local.ExamDto
 import com.shubhamsinghbisht.quiz_answer.data.local.QuestionDto
+import com.shubhamsinghbisht.quiz_answer.domain.model.Chapter
 import com.shubhamsinghbisht.quiz_answer.domain.model.NumericalAnswer
 import com.shubhamsinghbisht.quiz_answer.domain.model.Option
 import com.shubhamsinghbisht.quiz_answer.domain.model.Question
 import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionBank
 import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionType
+import com.shubhamsinghbisht.quiz_answer.domain.model.Subject
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.JsonElement
 
 fun ExamDto.toQuestionBank(): QuestionBank {
-    val flattened = buildList {
-        subjects.forEach { subject ->
-            subject.chapters.forEach { chapter ->
-                chapter.questions.forEach { dto ->
-                    if (dto.isRemoved) return@forEach
-                    val question = dto.toQuestion(
-                        examTitle = title,
-                        subjectTitle = subject.title,
-                        chapterTitle = chapter.title ?: chapter.chapterId,
-                        fallbackId = "q-${size}",
-                    )
-                    if (question != null) add(question)
-                }
+    var position = 0
+    val mappedSubjects = subjects.mapIndexed { subjectIndex, subjectDto ->
+        val subjectId = subjectDto.id?.oid?.takeIf { it.isNotBlank() } ?: "subject-$subjectIndex"
+        val mappedChapters = subjectDto.chapters.mapIndexed { chapterIndex, chapterDto ->
+            val chapterId = chapterDto.id?.oid?.takeIf { it.isNotBlank() }
+                ?: "$subjectId-chapter-$chapterIndex"
+            val chapterQuestions = chapterDto.questions.mapNotNull { dto ->
+                if (dto.isRemoved) return@mapNotNull null
+                dto.toQuestion(
+                    examTitle = title,
+                    subjectId = subjectId,
+                    subjectTitle = subjectDto.title,
+                    chapterId = chapterId,
+                    chapterTitle = chapterDto.title ?: chapterDto.chapterId,
+                    fallbackId = "q-${position++}",
+                )
             }
+            Chapter(
+                id = chapterId,
+                title = chapterDto.title ?: chapterDto.chapterId.orEmpty(),
+                subjectId = subjectId,
+                questions = chapterQuestions,
+            )
         }
+        Subject(
+            id = subjectId,
+            title = subjectDto.title.orEmpty(),
+            chapters = mappedChapters,
+        )
     }
-    return QuestionBank(examTitle = title, questions = flattened)
+
+    return QuestionBank(
+        examTitle = title,
+        subjects = mappedSubjects,
+        questions = mappedSubjects.flatMap { subject -> subject.chapters.flatMap { it.questions } },
+    )
 }
 
 private fun QuestionDto.toQuestion(
     examTitle: String?,
+    subjectId: String,
     subjectTitle: String?,
+    chapterId: String,
     chapterTitle: String?,
     fallbackId: String,
 ): Question? {
@@ -56,6 +79,8 @@ private fun QuestionDto.toQuestion(
     val type = QuestionType.fromRaw(type)
     return Question(
         id = id?.oid?.takeIf { it.isNotBlank() } ?: fallbackId,
+        subjectId = subjectId,
+        chapterId = chapterId,
         type = type,
         contentHtml = contentHtml,
         imageUrl = imageUrl,
@@ -69,15 +94,12 @@ private fun QuestionDto.toQuestion(
     )
 }
 
-private fun QuestionDto.toNumericalAnswer(): NumericalAnswer {
-    val raw = correctValue.asContentOrNull()
-    return NumericalAnswer(
-        correctValue = correctValue.asDoubleOrNull(),
-        rawValue = raw,
-        lowerLimit = numericalLowerLimit,
-        upperLimit = numericalUpperLimit,
-    )
-}
+private fun QuestionDto.toNumericalAnswer() = NumericalAnswer(
+    correctValue = correctValue.asDoubleOrNull(),
+    rawValue = correctValue.asContentOrNull(),
+    lowerLimit = numericalLowerLimit,
+    upperLimit = numericalUpperLimit,
+)
 
 private fun JsonElement?.asContentOrNull(): String? {
     val primitive = this as? JsonPrimitive ?: return null

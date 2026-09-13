@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.shubhamsinghbisht.quiz_answer.presentation.question.QuestionScreen
-import com.shubhamsinghbisht.quiz_answer.presentation.question.QuestionViewModel
+import com.shubhamsinghbisht.quiz_answer.presentation.navigation.AppNavHost
 import com.shubhamsinghbisht.quiz_answer.ui.theme.Quiz_AnswerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,11 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Quiz_AnswerTheme {
-                val viewModel: QuestionViewModel = hiltViewModel()
-                QuestionScreen(
-                    viewModel = viewModel,
-                    onBack = { finish() },
-                )
+                AppNavHost(onExit = { finish() })
             }
         }
     }

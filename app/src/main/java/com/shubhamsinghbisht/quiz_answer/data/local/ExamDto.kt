@@ -13,6 +13,7 @@ data class ExamDto(
 
 @Serializable
 data class SubjectDto(
+    @SerialName("_id") val id: ObjectIdDto? = null,
     val title: String? = null,
     val icon: String? = null,
     val chapters: List<ChapterDto> = emptyList(),
@@ -20,6 +21,7 @@ data class SubjectDto(
 
 @Serializable
 data class ChapterDto(
+    @SerialName("_id") val id: ObjectIdDto? = null,
     val title: String? = null,
     val chapterId: String? = null,
     val questions: List<QuestionDto> = emptyList(),

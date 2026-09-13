@@ -3,6 +3,8 @@ package com.shubhamsinghbisht.quiz_answer.presentation.question
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import com.shubhamsinghbisht.quiz_answer.presentation.navigation.QuestionRoute
 import com.shubhamsinghbisht.quiz_answer.core.util.AnswerChecker
 import com.shubhamsinghbisht.quiz_answer.di.QuestionFlowConfig
 import com.shubhamsinghbisht.quiz_answer.domain.model.Question
@@ -61,11 +63,12 @@ class QuestionViewModel @Inject constructor(
         viewModelScope.launch {
             errorMessage.value = null
             bank.value = null
+            val chapterId = savedStateHandle.toRoute<QuestionRoute>().chapterId
             repository.loadQuestions()
-                .map { it.supporting(flowConfig.supportedTypes) }
+                .map { it.inChapter(chapterId).supporting(flowConfig.supportedTypes) }
                 .onSuccess { filtered ->
                     if (filtered.questions.isEmpty()) {
-                        errorMessage.value = "No questions available for this exam."
+                        errorMessage.value = "No questions available in this chapter."
                     } else {
                         bank.value = filtered
                     }

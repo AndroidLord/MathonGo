@@ -32,6 +32,8 @@ data class NumericalAnswer(
 
 data class Question(
     val id: String,
+    val subjectId: String,
+    val chapterId: String,
     val type: QuestionType,
     val contentHtml: String,
     val imageUrl: String?,
@@ -47,10 +49,36 @@ data class Question(
         get() = options.filter { it.isCorrect }.map { it.id }.toSet()
 }
 
+data class Chapter(
+    val id: String,
+    val title: String,
+    val subjectId: String,
+    val questions: List<Question>,
+)
+
+data class Subject(
+    val id: String,
+    val title: String,
+    val chapters: List<Chapter>,
+) {
+    val questionCount: Int get() = chapters.sumOf { it.questions.size }
+}
+
 data class QuestionBank(
     val examTitle: String?,
+    val subjects: List<Subject>,
     val questions: List<Question>,
 ) {
     fun supporting(types: Set<QuestionType>): QuestionBank =
         copy(questions = questions.filter { it.type in types })
+
+    fun inChapter(chapterId: String): QuestionBank =
+        copy(questions = questions.filter { it.chapterId == chapterId })
+
+    fun chapter(chapterId: String): Chapter? =
+        subjects.firstNotNullOfOrNull { subject ->
+            subject.chapters.firstOrNull { it.id == chapterId }
+        }
+
+    fun subject(subjectId: String): Subject? = subjects.firstOrNull { it.id == subjectId }
 }

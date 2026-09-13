@@ -6,6 +6,7 @@ backend and no question, option, answer or ID is hardcoded.
 
 ## Features
 
+- Navigation shell: Home (subjects) -> Subject (chapters) -> Chapter -> Question attempt
 - 599 questions across 3 subjects and 21 chapters, in the original JSON order
 - Three question types: `singleCorrect`, `multipleCorrect`, `numerical`
 - Four answer states per question: unanswered, selected, checked-correct, checked-incorrect
@@ -24,6 +25,7 @@ backend and no question, option, answer or ID is hardcoded.
 | UI | Jetpack Compose, Material 3 (Compose BOM 2026.02.01) |
 | Build | AGP 9.3.2 (built-in Kotlin), Gradle 9.5 |
 | DI | Hilt 2.60.1 with KSP |
+| Navigation | Navigation Compose 2.10.1, type-safe routes |
 | JSON | kotlinx.serialization 1.9.0 |
 | Math/HTML | WebView + bundled MathJax 3.2.2, androidx.webkit 1.14.0 |
 | Min / Target SDK | 24 / 37 |
@@ -37,6 +39,10 @@ data/mapper/        QuestionMapper — DTO to domain, flatten and copy context
 domain/model/       Question, Option, NumericalAnswer, QuestionBank, QuestionType
 domain/repository/  QuestionRepository interface
 di/                 Hilt modules, dispatcher qualifier, QuestionFlowConfig
+presentation/navigation/
+                    Routes (type-safe), AppNavHost
+presentation/catalog/
+                    CatalogViewModel, HomeScreen, SubjectScreen, ChapterScreen
 presentation/question/
                     QuestionScreen, QuestionViewModel, QuestionUiState,
                     QuestionAnswerState, QuestionHeader, QuestionContent,
@@ -44,6 +50,22 @@ presentation/question/
 rendering/          RichContent, MathContentWebView, RichContentTemplate, HtmlText
 ui/theme/           Theme, FeedbackPalette, OptionColors
 ```
+
+## Navigation
+
+`AppNavHost` uses Navigation Compose with `@Serializable` type-safe routes:
+
+```
+HomeRoute -> SubjectRoute(subjectId) -> ChapterRoute(chapterId) -> QuestionRoute(chapterId)
+```
+
+Home, Subject and Chapter are deliberately minimal shells whose only job is to let you reach the
+question screen. They read subjects, chapters and counts from the same parsed `QuestionBank`;
+nothing is hardcoded. The question screen reads its `chapterId` from `SavedStateHandle` via
+`toRoute<QuestionRoute>()` and scopes the flow with `QuestionBank.inChapter(chapterId)`.
+
+`AssetQuestionRepository` is a `@Singleton` and caches the parsed bank behind a `Mutex`, so moving
+between screens does not re-parse the 2.2 MB file.
 
 ## State management
 
@@ -157,6 +179,8 @@ app/build/outputs/apk/debug/app-debug.apk
 - `multipleCorrect` and `numerical` reuse the single-correct check flow; there is no partial credit
 - Answers are not persisted across app restarts, only across configuration changes and process death
   within a session
+- The Home, Subject and Chapter screens are intentionally plain navigation shells, not designed UI
+- Answer state is per question id, so it is shared if the same question is reached from elsewhere
 - Images render at their intrinsic size up to the available width; low-resolution source images are
   not upscaled, so some diagrams appear small
 - `android.disallowKotlinSourceSets=false` is set in `gradle.properties` because KSP registers its

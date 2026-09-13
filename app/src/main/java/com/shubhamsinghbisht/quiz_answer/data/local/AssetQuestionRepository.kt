@@ -8,6 +8,8 @@ import com.shubhamsinghbisht.quiz_answer.domain.repository.QuestionRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -18,9 +20,21 @@ class AssetQuestionRepository @Inject constructor(
     @param:IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : QuestionRepository {
 
+    private val mutex = Mutex()
+    private var cached: QuestionBank? = null
+
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun loadQuestions(): Result<QuestionBank> = withContext(dispatcher) {
-        runCatching {
+        cached?.let { return@withContext Result.success(it) }
+        mutex.withLock {
+            cached?.let { return@withContext Result.success(it) }
+            parse().onSuccess { cached = it }
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun parse(): Result<QuestionBank> {
+        return runCatching {
             val exam = context.assets.open(ASSET_NAME).use { stream ->
                 json.decodeFromStream<ExamDto>(stream)
             }
