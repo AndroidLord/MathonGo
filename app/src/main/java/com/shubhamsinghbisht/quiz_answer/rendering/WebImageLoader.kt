@@ -7,7 +7,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
 class WebImageLoader(context: Context) {
@@ -65,11 +64,7 @@ class WebImageLoader(context: Context) {
         }
     }.getOrNull()
 
-    private fun fileFor(url: String): File = File(cacheDir, sha256(url))
-
-    private fun sha256(value: String): String =
-        MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
-            .joinToString("") { "%02x".format(it) }
+    private fun fileFor(url: String): File = File(cacheDir, "${url.hashCode()}")
 
     private fun looksLikeImage(url: Uri): Boolean {
         val path = url.path?.lowercase().orEmpty()
