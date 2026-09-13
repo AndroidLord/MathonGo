@@ -102,9 +102,13 @@ death. The current index is held in `SavedStateHandle` directly.
 The app bar is deliberately the same dark surface in both themes, so the status bar is forced to
 light icons via `enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(...))`.
 
-The bottom action bar follows the spec's box model: 8dp top/left/right padding, 12dp gap, 48dp
-pill buttons, and 32dp bottom padding — widened to the system inset on devices with a
-three-button navigation bar so the actions can never sit underneath it.
+The bottom action bar follows the spec's box model: 8dp top/left/right padding, 12dp gap and 32dp
+bottom padding (88dp hug height), widened to the system inset on devices with a three-button
+navigation bar so the actions can never sit underneath it.
+
+Previous and Next are 94x48dp pills with a 40dp radius, filled `m5/base/1` (the main background)
+with a 1dp `m5/stroke/light` border (the divider colour) and light text. Check Answer fills the
+remaining width and uses near-black text on its blue fill.
 
 ## Theming
 
