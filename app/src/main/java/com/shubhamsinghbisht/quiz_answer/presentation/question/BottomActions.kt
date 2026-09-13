@@ -3,21 +3,25 @@ package com.shubhamsinghbisht.quiz_answer.presentation.question
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 private val Pill = RoundedCornerShape(50)
+private val ButtonHeight = 48.dp
+private val EdgePadding = 8.dp
+private val BottomPadding = 32.dp
+private val ButtonGap = 12.dp
 
 @Composable
 fun BottomActions(
@@ -29,15 +33,22 @@ fun BottomActions(
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // The spec's 32dp bottom already covers a gesture bar; take the larger value so a
+    // three-button navigation bar cannot sit on top of the actions.
+    val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     Surface(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.background,
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Row(
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(
+                start = EdgePadding,
+                top = EdgePadding,
+                end = EdgePadding,
+                bottom = maxOf(BottomPadding, systemBottom),
+            ),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGap),
         ) {
             NavPill(
                 text = "Previous",
@@ -51,7 +62,7 @@ fun BottomActions(
                 shape = Pill,
                 modifier = Modifier
                     .weight(1.5f)
-                    .height(48.dp),
+                    .height(ButtonHeight),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -82,7 +93,7 @@ private fun NavPill(
         onClick = onClick,
         enabled = enabled,
         shape = Pill,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(ButtonHeight),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface,

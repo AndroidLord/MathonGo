@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.shubhamsinghbisht.quiz_answer.rendering.RichContent
+import com.shubhamsinghbisht.quiz_answer.ui.theme.RichContentTextStyle
 import com.shubhamsinghbisht.quiz_answer.ui.theme.optionColors
 
 @Composable
@@ -65,7 +66,7 @@ fun OptionCard(
                 RichContent(
                     html = contentHtml,
                     color = colors.content,
-                    textStyle = MaterialTheme.typography.bodyMedium,
+                    textStyle = RichContentTextStyle,
                     interactive = false,
                     modifier = Modifier.weight(1f),
                 )

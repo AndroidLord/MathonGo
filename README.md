@@ -89,6 +89,23 @@ Answer records are keyed by `question.id` (the `_id.$oid` from the JSON), never 
 are mirrored into `SavedStateHandle` as JSON — so they survive configuration changes and process
 death. The current index is held in `SavedStateHandle` directly.
 
+## Design tokens
+
+| Token | Light | Dark |
+|---|---|---|
+| Main background | `#FFFFFF` | `#16191D` |
+| App bar | `#23282E` | `#23282E` |
+| Bottom action bar (`m5/base/floating`) | `#FBFCFE` | `#23282E` |
+| Divider | `#EBEEF5` | `#32373E` |
+| Check Answer (enabled) | `#2563EB` | `#60A5FA` |
+
+The app bar is deliberately the same dark surface in both themes, so the status bar is forced to
+light icons via `enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(...))`.
+
+The bottom action bar follows the spec's box model: 8dp top/left/right padding, 12dp gap, 48dp
+pill buttons, and 32dp bottom padding — widened to the system inset on devices with a
+three-button navigation bar so the actions can never sit underneath it.
+
 ## Theming
 
 Three modes are supported (`ThemeMode.SYSTEM/LIGHT/DARK`). The Home app bar carries a
@@ -134,7 +151,9 @@ Compose -> AndroidView -> WebView -> local HTML template -> MathJax
 Only question and option content uses a WebView. The rest of the app is native Compose.
 
 - `RichContentTemplate` loads `assets/rich_content.html` and injects the current theme's text,
-  link and border colors plus font size, so HTML and math match light/dark mode.
+  link, border and placeholder colors plus font size, so HTML and math match light/dark mode.
+- Question and option content is set in Times New Roman at 16px on a 24px line with 6px paragraph
+  spacing, per the design spec. App chrome (counters, metadata, buttons, lists) stays sans-serif.
 - `MathContentWebView` hosts the WebView, sizes it from a height reported by JavaScript after
   MathJax typesetting completes, and serves local assets through `WebViewAssetLoader`.
 - Option content is rendered with touch disabled so taps reach the card underneath.

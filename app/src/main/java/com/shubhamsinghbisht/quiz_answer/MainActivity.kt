@@ -3,6 +3,7 @@ package com.shubhamsinghbisht.quiz_answer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // The app bar is dark in both themes, so the status bar icons must stay light.
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent {
             val themeMode by themeViewModel.mode.collectAsStateWithLifecycle()
             Quiz_AnswerTheme(themeMode = themeMode) {

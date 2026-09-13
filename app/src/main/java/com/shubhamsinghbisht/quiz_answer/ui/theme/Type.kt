@@ -32,3 +32,8 @@ val Typography = Typography(
     )
     */
 )
+// Question and option rich content: Times New Roman, 16px on a 24px line, per the design spec.
+val RichContentTextStyle = androidx.compose.ui.text.TextStyle(
+    fontSize = androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp),
+    lineHeight = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp),
+)

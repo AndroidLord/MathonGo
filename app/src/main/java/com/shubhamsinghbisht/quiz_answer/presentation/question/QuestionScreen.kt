@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -123,6 +124,8 @@ private fun QuestionBody(
             questionNumber = state.questionNumber,
             totalQuestions = state.totalQuestions,
         )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         if (state.question.type == QuestionType.NUMERICAL) {
             NumericalAnswerInput(

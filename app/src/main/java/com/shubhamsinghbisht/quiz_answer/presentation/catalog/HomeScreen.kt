@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.shubhamsinghbisht.quiz_answer.ui.theme.OnTopBarColor
+import com.shubhamsinghbisht.quiz_answer.ui.theme.TopBarColor
 import com.shubhamsinghbisht.quiz_answer.domain.model.Chapter
 import com.shubhamsinghbisht.quiz_answer.ui.theme.LocalIsDarkTheme
 
@@ -74,7 +76,10 @@ fun HomeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = TopBarColor,
+                    titleContentColor = OnTopBarColor,
+                    navigationIconContentColor = OnTopBarColor,
+                    actionIconContentColor = OnTopBarColor,
                 ),
             )
         },

@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.shubhamsinghbisht.quiz_answer.ui.theme.OnTopBarColor
+import com.shubhamsinghbisht.quiz_answer.ui.theme.TopBarColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,9 +53,10 @@ fun QuestionHeader(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-        ),
+                    containerColor = TopBarColor,
+                    titleContentColor = OnTopBarColor,
+                    navigationIconContentColor = OnTopBarColor,
+                    actionIconContentColor = OnTopBarColor,
+                ),
     )
 }

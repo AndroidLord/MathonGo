@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.shubhamsinghbisht.quiz_answer.ui.theme.OnTopBarColor
+import com.shubhamsinghbisht.quiz_answer.ui.theme.TopBarColor
 import com.shubhamsinghbisht.quiz_answer.domain.model.Question
 import com.shubhamsinghbisht.quiz_answer.rendering.toPlainText
 
@@ -80,7 +82,10 @@ fun ChapterScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = TopBarColor,
+                    titleContentColor = OnTopBarColor,
+                    navigationIconContentColor = OnTopBarColor,
+                    actionIconContentColor = OnTopBarColor,
                 ),
             )
         },

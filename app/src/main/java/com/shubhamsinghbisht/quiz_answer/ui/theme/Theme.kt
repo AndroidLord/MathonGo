@@ -8,6 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
+// The app bar keeps the same dark surface in both themes.
+val TopBarColor = Color(0xFF23282E)
+val OnTopBarColor = Color(0xFFF2F3F5)
+
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF2563EB),
     onPrimary = Color(0xFFFFFFFF),
@@ -19,23 +23,27 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF14161A),
     surfaceVariant = Color(0xFFF3F4F7),
     onSurfaceVariant = Color(0xFF6B7280),
+    // m5/base/floating
+    surfaceContainer = Color(0xFFFBFCFE),
     outline = Color(0xFFC9CDD6),
-    outlineVariant = Color(0xFFE5E7EB),
+    outlineVariant = Color(0xFFEBEEF5),
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF3B82F6),
+    primary = Color(0xFF60A5FA),
     onPrimary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFF20222A),
     onSecondaryContainer = Color(0xFFC2C7D0),
-    background = Color(0xFF0B0B0D),
+    background = Color(0xFF16191D),
     onBackground = Color(0xFFF2F3F5),
-    surface = Color(0xFF131419),
+    surface = Color(0xFF1C2026),
     onSurface = Color(0xFFF2F3F5),
-    surfaceVariant = Color(0xFF1E2027),
+    surfaceVariant = Color(0xFF262B33),
     onSurfaceVariant = Color(0xFF8A8F98),
+    // m5/base/floating
+    surfaceContainer = Color(0xFF23282E),
     outline = Color(0xFF3A3E46),
-    outlineVariant = Color(0xFF26282E),
+    outlineVariant = Color(0xFF32373E),
 )
 
 @Composable

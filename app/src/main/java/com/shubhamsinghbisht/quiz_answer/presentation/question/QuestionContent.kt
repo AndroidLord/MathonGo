@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.shubhamsinghbisht.quiz_answer.domain.model.Question
 import com.shubhamsinghbisht.quiz_answer.rendering.RichContent
+import com.shubhamsinghbisht.quiz_answer.ui.theme.RichContentTextStyle
 
 @Composable
 fun QuestionContent(
@@ -63,7 +64,7 @@ fun QuestionContent(
 
         RichContent(
             html = question.contentHtml,
-            textStyle = MaterialTheme.typography.bodyLarge,
+            textStyle = RichContentTextStyle,
             modifier = Modifier.fillMaxWidth(),
         )
     }
