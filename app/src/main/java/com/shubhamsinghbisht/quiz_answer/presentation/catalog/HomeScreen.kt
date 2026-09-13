@@ -110,14 +110,6 @@ fun HomeScreen(
                     }
                 }
 
-                Text(
-                    text = "Showing Chapters (${chapters.size}/${chapters.size})",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 10.dp),
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 24.dp),
