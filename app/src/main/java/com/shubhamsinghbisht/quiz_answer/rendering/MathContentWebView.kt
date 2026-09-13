@@ -6,6 +6,7 @@ import android.content.Context
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -34,6 +35,7 @@ fun MathContentWebView(
     theme: RichContentTheme,
     modifier: Modifier = Modifier,
     interactive: Boolean = true,
+    onRenderFailed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val template = remember(context) { RichContentTemplate(context) }
@@ -102,6 +104,21 @@ fun MathContentWebView(
                         error: android.webkit.WebResourceError,
                     ) {
                         // A failed subresource must not take the screen down with it.
+                    }
+
+                    override fun onPageFinished(view: WebView, url: String?) {
+                        // Backstop in case MathJax never reaches its ready callback.
+                        view.evaluateJavascript("postHeight && postHeight()", null)
+                    }
+
+                    // Returning false here lets the render process crash kill the whole app.
+                    override fun onRenderProcessGone(
+                        view: WebView,
+                        detail: RenderProcessGoneDetail,
+                    ): Boolean {
+                        view.destroy()
+                        onRenderFailed()
+                        return true
                     }
                 }
             }

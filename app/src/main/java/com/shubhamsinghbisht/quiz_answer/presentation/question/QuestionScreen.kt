@@ -119,6 +119,14 @@ private fun QuestionBody(
             totalQuestions = state.totalQuestions,
         )
 
+        if (state.question.options.isEmpty()) {
+            Text(
+                text = "This question has no options to choose from.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             state.question.options.forEachIndexed { index, option ->
                 OptionCard(
