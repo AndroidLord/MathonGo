@@ -17,8 +17,12 @@
     word-break: break-word;
     -webkit-text-size-adjust: 100%;
   }
+  #root {
+    display: flow-root;
+  }
   #root > *:first-child { margin-top: 0; }
   #root > *:last-child { margin-bottom: 0; }
+  #root > img:only-child { margin: 0; }
   p { margin: 0 0 0.55em 0; }
   img {
     max-width: 100%;
@@ -71,12 +75,11 @@
   };
 
   function currentHeight() {
+    // Measure the content wrapper only. body.scrollHeight rounds up to the viewport and folds in
+    // collapsed margins, which left visible dead space under short content such as an option image.
     var root = document.getElementById('root');
-    var rect = root ? root.getBoundingClientRect() : null;
-    return Math.ceil(Math.max(
-      rect ? rect.height : 0,
-      document.body ? document.body.scrollHeight : 0
-    ));
+    if (!root) return 0;
+    return Math.ceil(root.getBoundingClientRect().height);
   }
 
   function postHeight() {
