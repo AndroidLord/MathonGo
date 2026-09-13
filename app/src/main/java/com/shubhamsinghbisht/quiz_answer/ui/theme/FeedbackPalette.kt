@@ -16,23 +16,23 @@ data class FeedbackPalette(
 )
 
 val LightFeedback = FeedbackPalette(
-    selected = Color(0xFF2F6BFF),
-    selectedContainer = Color(0xFFEAF1FF),
-    correct = Color(0xFF1E9E5A),
-    correctContainer = Color(0xFFE6F7EE),
-    incorrect = Color(0xFFD94141),
-    incorrectContainer = Color(0xFFFDECEC),
+    selected = Color(0xFF2563EB),
+    selectedContainer = Color(0xFFEFF5FF),
+    correct = Color(0xFF16A34A),
+    correctContainer = Color(0xFFEDFBF2),
+    incorrect = Color(0xFFDC2626),
+    incorrectContainer = Color(0xFFFEF2F2),
     onAccent = Color(0xFFFFFFFF),
 )
 
 val DarkFeedback = FeedbackPalette(
-    selected = Color(0xFF7BA4FF),
-    selectedContainer = Color(0xFF16233D),
-    correct = Color(0xFF5BD394),
-    correctContainer = Color(0xFF10281C),
-    incorrect = Color(0xFFFF8A8A),
-    incorrectContainer = Color(0xFF2E1618),
-    onAccent = Color(0xFF0E1116),
+    selected = Color(0xFF3B82F6),
+    selectedContainer = Color(0xFF15203A),
+    correct = Color(0xFF22C55E),
+    correctContainer = Color(0xFF10231A),
+    incorrect = Color(0xFFEF4444),
+    incorrectContainer = Color(0xFF2A1416),
+    onAccent = Color(0xFFFFFFFF),
 )
 
 val LocalIsDarkTheme = compositionLocalOf { false }

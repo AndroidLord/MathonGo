@@ -6,10 +6,7 @@ import kotlinx.serialization.Serializable
 data object HomeRoute
 
 @Serializable
-data class SubjectRoute(val subjectId: String)
-
-@Serializable
 data class ChapterRoute(val chapterId: String)
 
 @Serializable
-data class QuestionRoute(val chapterId: String)
+data class QuestionRoute(val chapterId: String, val startIndex: Int = 0)

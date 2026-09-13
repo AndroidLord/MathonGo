@@ -31,7 +31,8 @@ class QuestionViewModel @Inject constructor(
 
     private val bank = MutableStateFlow<QuestionBank?>(null)
     private val errorMessage = MutableStateFlow<String?>(null)
-    private val currentIndex = savedStateHandle.getStateFlow(KEY_INDEX, 0)
+    private val route = savedStateHandle.toRoute<QuestionRoute>()
+    private val currentIndex = savedStateHandle.getStateFlow(KEY_INDEX, route.startIndex)
     private val answers = MutableStateFlow(restoreAnswers())
 
     val uiState: StateFlow<QuestionUiState> =
@@ -63,9 +64,8 @@ class QuestionViewModel @Inject constructor(
         viewModelScope.launch {
             errorMessage.value = null
             bank.value = null
-            val chapterId = savedStateHandle.toRoute<QuestionRoute>().chapterId
             repository.loadQuestions()
-                .map { it.inChapter(chapterId).supporting(flowConfig.supportedTypes) }
+                .map { it.inChapter(route.chapterId).supporting(flowConfig.supportedTypes) }
                 .onSuccess { filtered ->
                     if (filtered.questions.isEmpty()) {
                         errorMessage.value = "No questions available in this chapter."

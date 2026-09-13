@@ -6,7 +6,8 @@ backend and no question, option, answer or ID is hardcoded.
 
 ## Features
 
-- Navigation shell: Home (subjects) -> Subject (chapters) -> Chapter -> Question attempt
+- Navigation shell: Home (subject tabs + chapters) -> Chapter (question list) -> Question attempt
+- Light/dark theme toggle on Home, remembered across launches
 - 599 questions across 3 subjects and 21 chapters, in the original JSON order
 - Three question types: `singleCorrect`, `multipleCorrect`, `numerical`
 - Four answer states per question: unanswered, selected, checked-correct, checked-incorrect
@@ -34,7 +35,7 @@ backend and no question, option, answer or ID is hardcoded.
 
 ```
 core/util/          AnswerChecker — answer validation, no Android dependencies
-data/local/         ExamDto (JSON models), AssetQuestionRepository
+data/local/         ExamDto (JSON models), AssetQuestionRepository, ThemePreferences
 data/mapper/        QuestionMapper — DTO to domain, flatten and copy context
 domain/model/       Question, Option, NumericalAnswer, QuestionBank, QuestionType
 domain/repository/  QuestionRepository interface
@@ -42,13 +43,14 @@ di/                 Hilt modules, dispatcher qualifier, QuestionFlowConfig
 presentation/navigation/
                     Routes (type-safe), AppNavHost
 presentation/catalog/
-                    CatalogViewModel, HomeScreen, SubjectScreen, ChapterScreen
+                    CatalogViewModel, HomeScreen, ChapterScreen, CatalogCommon
+presentation/theme/ ThemeViewModel
 presentation/question/
                     QuestionScreen, QuestionViewModel, QuestionUiState,
                     QuestionAnswerState, QuestionHeader, QuestionContent,
                     OptionCard, NumericalAnswerInput, BottomActions
 rendering/          RichContent, MathContentWebView, RichContentTemplate, HtmlText
-ui/theme/           Theme, FeedbackPalette, OptionColors
+ui/theme/           Theme, ThemeMode, FeedbackPalette, OptionColors
 ```
 
 ## Navigation
@@ -56,13 +58,15 @@ ui/theme/           Theme, FeedbackPalette, OptionColors
 `AppNavHost` uses Navigation Compose with `@Serializable` type-safe routes:
 
 ```
-HomeRoute -> SubjectRoute(subjectId) -> ChapterRoute(chapterId) -> QuestionRoute(chapterId)
+HomeRoute -> ChapterRoute(chapterId) -> QuestionRoute(chapterId, startIndex)
 ```
 
-Home, Subject and Chapter are deliberately minimal shells whose only job is to let you reach the
-question screen. They read subjects, chapters and counts from the same parsed `QuestionBank`;
-nothing is hardcoded. The question screen reads its `chapterId` from `SavedStateHandle` via
-`toRoute<QuestionRoute>()` and scopes the flow with `QuestionBank.inChapter(chapterId)`.
+Home presents subjects as tabs and lists the selected subject's chapters, so choosing a subject and
+a chapter happens on one screen. Chapter lists that chapter's questions with a plain-text preview,
+its previous-year label and a video indicator. Both read from the same parsed `QuestionBank`;
+nothing is hardcoded. The question screen reads `chapterId` and `startIndex` from `SavedStateHandle`
+via `toRoute<QuestionRoute>()`, scopes the flow with `QuestionBank.inChapter(chapterId)` and opens
+on the question that was tapped.
 
 `AssetQuestionRepository` is a `@Singleton` and caches the parsed bank behind a `Mutex`, so moving
 between screens does not re-parse the 2.2 MB file.
@@ -84,6 +88,17 @@ Two representations are kept deliberately separate:
 Answer records are keyed by `question.id` (the `_id.$oid` from the JSON), never by list index, and
 are mirrored into `SavedStateHandle` as JSON — so they survive configuration changes and process
 death. The current index is held in `SavedStateHandle` directly.
+
+## Theming
+
+Three modes are supported (`ThemeMode.SYSTEM/LIGHT/DARK`). The Home app bar carries a
+sun/moon toggle that flips between light and dark; the choice is stored in `SharedPreferences` by
+`ThemePreferences` and survives app restarts. Dark is the default on first launch.
+
+Answer feedback colours live in a `FeedbackPalette` with separate light and dark values, exposed to
+Compose through `LocalIsDarkTheme`, and are injected into the rich-content WebView so HTML and
+maths follow the same theme. Checked option cards keep the plain card fill; only the border, the
+letter badge and the floating state label carry colour.
 
 ## Data handling
 
@@ -179,7 +194,8 @@ app/build/outputs/apk/debug/app-debug.apk
 - `multipleCorrect` and `numerical` reuse the single-correct check flow; there is no partial credit
 - Answers are not persisted across app restarts, only across configuration changes and process death
   within a session
-- The Home, Subject and Chapter screens are intentionally plain navigation shells, not designed UI
+- Home and Chapter are intentionally light navigation shells
+- Chapter rows show the total question count; attempt progress is not tracked across sessions
 - Answer state is per question id, so it is shared if the same question is reached from elsewhere
 - Images render at their intrinsic size up to the available width; low-resolution source images are
   not upscaled, so some diagrams appear small

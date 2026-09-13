@@ -3,61 +3,93 @@ package com.shubhamsinghbisht.quiz_answer.presentation.question
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+private val Pill = RoundedCornerShape(50)
+
 @Composable
 fun BottomActions(
-    modifier: Modifier = Modifier,
     canGoPrevious: Boolean,
     canGoNext: Boolean,
     canCheck: Boolean,
     onPrevious: () -> Unit,
     onCheck: () -> Unit,
     onNext: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
-        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Row(
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            OutlinedButton(
-                onClick = onPrevious,
+            NavPill(
+                text = "Previous",
                 enabled = canGoPrevious,
+                onClick = onPrevious,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text("Previous")
-            }
+            )
             Button(
                 onClick = onCheck,
                 enabled = canCheck,
-                modifier = Modifier.weight(1.4f),
+                shape = Pill,
+                modifier = Modifier
+                    .weight(1.5f)
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.55f),
+                ),
             ) {
-                Text("Check Answer")
+                Text("Check Answer", style = MaterialTheme.typography.labelLarge)
             }
-            OutlinedButton(
-                onClick = onNext,
+            NavPill(
+                text = "Next",
                 enabled = canGoNext,
+                onClick = onNext,
                 modifier = Modifier.weight(1f),
-            ) {
-                Text("Next")
-            }
+            )
         }
+    }
+}
+
+@Composable
+private fun NavPill(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = Pill,
+        modifier = modifier.height(48.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+        ),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
     }
 }
