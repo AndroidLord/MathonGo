@@ -141,6 +141,23 @@ Only question and option content uses a WebView. The rest of the app is native C
 - Wide tables are wrapped in a horizontally scrolling container; images are capped at 100% width;
   images that fail to load are hidden rather than left as broken boxes.
 
+### Image loading
+
+All 314 images in the data live inside the HTML as `<img>` tags, so they are fetched by the WebView
+rather than by Compose. A Compose image library such as Coil would never see them, so the loader
+sits at the WebView request level instead: `WebImageLoader` is consulted from
+`shouldInterceptRequest` after the MathJax asset handler.
+
+- Downloaded bytes are written to a SHA-256 keyed file under `cacheDir/web-images`, so a question
+  revisited later renders its images with no network call at all.
+- Concurrent requests for the same URL are collapsed, which matters because a question and its
+  options can reference the same diagram.
+- Any failure returns null and the WebView falls back to its own loading, so the loader can never
+  make image loading worse than it was.
+- While an image is in flight the CSS shows an animated shimmer placeholder; `img.loaded` clears it
+  on load, and `img.broken` hides images that never arrive. The animation is disabled under
+  `prefers-reduced-motion`.
+
 ## MathJax setup
 
 MathJax 3.2.2 is bundled at `assets/mathjax/tex-mml-svg.js` and served over
@@ -199,6 +216,7 @@ app/build/outputs/apk/debug/app-debug.apk
 - Answer state is per question id, so it is shared if the same question is reached from elsewhere
 - Images render at their intrinsic size up to the available width; low-resolution source images are
   not upscaled, so some diagrams appear small
+- The image cache has no size cap or eviction policy; it grows until Android clears the app cache
 - `android.disallowKotlinSourceSets=false` is set in `gradle.properties` because KSP registers its
   generated sources in a way AGP 9's built-in Kotlin rejects by default. This flag is marked
   experimental by AGP and may need revisiting on a future version.

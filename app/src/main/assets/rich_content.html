@@ -30,8 +30,30 @@
     display: block;
     margin: 0.5em 0;
     border-radius: 6px;
+    min-height: 32px;
+    background-color: __PLACEHOLDER_COLOR__;
+    background-image: linear-gradient(
+      90deg,
+      __PLACEHOLDER_COLOR__ 0%,
+      __PLACEHOLDER_HIGHLIGHT__ 50%,
+      __PLACEHOLDER_COLOR__ 100%
+    );
+    background-size: 200% 100%;
+    animation: imgLoading 1.2s ease-in-out infinite;
+  }
+  img.loaded {
+    min-height: 0;
+    background: none;
+    animation: none;
   }
   img.broken { display: none; }
+  @keyframes imgLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    img { animation: none; }
+  }
   a { color: __LINK_COLOR__; }
   table {
     border-collapse: collapse;
@@ -102,7 +124,11 @@
         img.classList.add('broken');
         postHeight();
       });
-      img.addEventListener('load', postHeight);
+      img.addEventListener('load', function () {
+        img.classList.add('loaded');
+        postHeight();
+      });
+      if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
     });
 
     // Wrap wide tables so they scroll inside themselves instead of widening the page.

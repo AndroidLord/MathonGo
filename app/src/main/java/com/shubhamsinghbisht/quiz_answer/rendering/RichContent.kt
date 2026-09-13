@@ -49,6 +49,8 @@ fun RichContent(
             textColor = color,
             linkColor = scheme.primary,
             borderColor = scheme.outlineVariant,
+            placeholderColor = scheme.surfaceVariant,
+            placeholderHighlight = scheme.outlineVariant,
             fontSizeSp = fontSizeSp,
             lineHeight = lineHeight,
         )

@@ -52,6 +52,7 @@ fun MathContentWebView(
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
             .build()
     }
+    val imageLoader = remember(context) { WebImageLoader(context) }
 
     AndroidView(
         modifier = modifier
@@ -91,7 +92,9 @@ fun MathContentWebView(
                     override fun shouldInterceptRequest(
                         view: WebView,
                         request: WebResourceRequest,
-                    ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+                    ): WebResourceResponse? =
+                        assetLoader.shouldInterceptRequest(request.url)
+                            ?: imageLoader.intercept(request.url)
 
                     override fun shouldOverrideUrlLoading(
                         view: WebView,

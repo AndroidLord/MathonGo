@@ -8,6 +8,8 @@ data class RichContentTheme(
     val textColor: Color,
     val linkColor: Color,
     val borderColor: Color,
+    val placeholderColor: Color,
+    val placeholderHighlight: Color,
     val fontSizeSp: Float,
     val lineHeight: Float,
 )
@@ -22,6 +24,8 @@ class RichContentTemplate(context: Context) {
         .replace("__TEXT_COLOR__", theme.textColor.toCss())
         .replace("__LINK_COLOR__", theme.linkColor.toCss())
         .replace("__BORDER_COLOR__", theme.borderColor.toCss())
+        .replace("__PLACEHOLDER_COLOR__", theme.placeholderColor.toCss())
+        .replace("__PLACEHOLDER_HIGHLIGHT__", theme.placeholderHighlight.toCss())
         .replace("__FONT_SIZE__", theme.fontSizeSp.toString())
         .replace("__LINE_HEIGHT__", theme.lineHeight.toString())
         .replace("__CONTENT__", content)
