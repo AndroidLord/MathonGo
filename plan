@@ -1,0 +1,751 @@
+# Implementation Plan
+
+Build a native Android question-attempt screen using Kotlin and Jetpack Compose.
+
+Work incrementally. Complete and verify each phase before moving to the next. Do not build the entire application in one shot.
+
+==================================================
+PHASE 0 — INSPECT
+==================================================
+
+Before writing code:
+
+1. Inspect the existing Android project.
+2. Inspect the actual data.json structure.
+3. Identify:
+   - root structure
+   - subjects
+   - chapters
+   - questions
+   - question types
+   - question fields
+   - option fields
+   - metadata fields
+   - image fields
+   - video-solution fields
+4. Identify the existing Gradle/Kotlin/Compose setup.
+
+Do not assume the JSON structure. Use the actual file.
+
+Do not modify the project during this phase.
+
+Report what you found, then proceed.
+
+==================================================
+PHASE 1 — PROJECT STRUCTURE
+==================================================
+
+Use a simple clean structure:
+
+data/
+    local/
+    mapper/
+
+domain/
+    model/
+    repository/
+
+presentation/
+    question/
+        QuestionScreen
+        QuestionViewModel
+        QuestionUiState
+        QuestionHeader
+        QuestionContent
+        OptionCard
+        BottomActions
+
+rendering/
+    MathContentWebView
+
+Keep responsibilities separated.
+
+Do not over-engineer.
+
+Do not introduce unnecessary:
+- Retrofit
+- Room
+- backend
+- authentication
+- multi-module architecture
+- complex dependency injection
+
+==================================================
+PHASE 2 — LOAD JSON
+==================================================
+
+Bundle data.json inside:
+
+app/src/main/assets/data.json
+
+Create serialization models matching the actual JSON.
+
+Keep JSON models separate from domain models.
+
+Create domain models containing the information required by the UI.
+
+Preserve:
+
+subject
+    -> chapter
+        -> question
+            -> options
+
+Map the subject and chapter context into each question.
+
+Flatten the questions into a List<Question> while preserving the original JSON order.
+
+Parse the JSON off the main thread.
+
+Handle malformed/missing JSON gracefully.
+
+The app must show an error state instead of crashing if the JSON cannot be loaded.
+
+Verify that real questions from data.json can be loaded before continuing.
+
+==================================================
+PHASE 3 — QUESTION TYPES
+==================================================
+
+Parse all question types present in the JSON.
+
+Support:
+
+singleCorrect
+multipleCorrect
+numerical
+
+For the initial implementation, filter the question flow to singleCorrect questions.
+
+Do not hardcode which questions are displayed.
+
+Do not hardcode question IDs, option IDs, answers, chapters, subjects or metadata.
+
+Keep the other question types available for later implementation.
+
+==================================================
+PHASE 4 — STATE MODEL
+==================================================
+
+Keep UI state separate from the raw JSON/domain models.
+
+Create per-question answer state.
+
+Example:
+
+AnswerState(
+    selectedOptionIds: Set<String>,
+    checked: Boolean
+)
+
+Store state using question ID as the key.
+
+Do NOT use the array index as the answer-state key.
+
+The ViewModel should own:
+
+- current question index
+- question list
+- answer states
+- selected option
+- checked state
+- navigation
+- answer validation
+
+The Composables should only render state and emit user actions.
+
+==================================================
+PHASE 5 — SINGLE CORRECT LOGIC
+==================================================
+
+Implement four states.
+
+1. Unanswered
+
+selected = none
+checked = false
+
+All options neutral.
+
+Check Answer disabled.
+
+2. Selected
+
+selected = one option
+checked = false
+
+Selected option highlighted.
+
+Check Answer enabled.
+
+3. Checked + correct
+
+selected option is correct
+checked = true
+
+Selected option becomes green.
+
+Show correct feedback.
+
+4. Checked + wrong
+
+selected option is incorrect
+checked = true
+
+Selected option becomes red.
+
+Correct option becomes green.
+
+Do NOT reveal the correct answer before Check Answer is pressed.
+
+For singleCorrect, selecting another option must replace the previous selection.
+
+Keep answer-checking logic outside the UI.
+
+Create unit tests for:
+
+- correct option
+- incorrect option
+- invalid option
+
+==================================================
+PHASE 6 — SCREEN UI
+==================================================
+
+Build the screen in Compose.
+
+Structure:
+
+Top bar
+    Back
+    Exam > Chapter
+
+Scrollable content
+    Question number / total
+    Previous-year/source metadata
+    Video solution indicator
+    Question content
+    Options
+
+Fixed bottom action area
+    Previous
+    Check Answer
+    Next
+
+Only the question content should scroll.
+
+The bottom action area must remain usable while question content is long.
+
+Do not recreate the device status bar shown in the reference.
+
+==================================================
+PHASE 7 — QUESTION METADATA
+==================================================
+
+Read everything dynamically from the JSON.
+
+Display when available:
+
+- exam title
+- chapter title
+- current question number
+- total question count
+- previous-year/source information
+- video solution indicator
+
+Question number:
+
+currentIndex + 1
+
+Total:
+
+questions.size
+
+Do not hardcode these values.
+
+If optional metadata is null/missing:
+
+- hide that element
+- never display "null"
+- never crash
+
+Do not implement video playback.
+
+==================================================
+PHASE 8 — RICH CONTENT RENDERER
+==================================================
+
+Question and option content can contain:
+
+- plain text
+- HTML
+- HTML entities
+- paragraphs
+- bold text
+- line breaks
+- simple tables
+- LaTeX
+- MathML
+- inline images
+- image-heavy content
+- mixed combinations
+
+Create one reusable rich-content renderer.
+
+Use:
+
+Compose
+    -> AndroidView
+        -> WebView
+            -> local HTML
+                -> MathJax
+
+The whole application must NOT be implemented as a WebView.
+
+Only question/option rich content should use WebView.
+
+==================================================
+PHASE 9 — MATHJAX
+==================================================
+
+Bundle MathJax with the application.
+
+Do not depend on a public MathJax CDN.
+
+The renderer must support LaTeX and MathML.
+
+Examples:
+
+$...$
+
+and:
+
+<math>...</math>
+
+Do not strip mathematical markup.
+
+Do not convert math into plain text.
+
+Do not replace mathematical expressions with placeholders.
+
+Ensure MathJax typesetting completes correctly before treating the content as rendered.
+
+==================================================
+PHASE 10 — HTML + IMAGES
+==================================================
+
+Normal HTML should render correctly.
+
+Support:
+
+- paragraphs
+- strong/bold
+- line breaks
+- spans
+- entities
+- simple tables
+
+Support images from:
+
+1. dedicated image fields
+2. <img src="..."> inside HTML
+
+Images should scale to the available width.
+
+Remote image loading must fail gracefully.
+
+A broken/slow image must never crash the screen.
+
+==================================================
+PHASE 11 — THEME
+==================================================
+
+Implement both light and dark themes.
+
+Every required state must work in both themes:
+
+Light:
+- unanswered
+- selected
+- correct
+- wrong
+
+Dark:
+- unanswered
+- selected
+- correct
+- wrong
+
+Use Compose Material theme for the native UI.
+
+Pass the current theme into the rich-content renderer so HTML and math content also have appropriate colors/backgrounds.
+
+Do not create separate screen implementations for light and dark mode.
+
+==================================================
+PHASE 12 — NAVIGATION
+==================================================
+
+Implement:
+
+Previous
+Next
+
+First question:
+
+Previous disabled.
+
+Last question:
+
+Next disabled.
+
+Do not wrap around.
+
+Navigation must preserve the original question order.
+
+Verify navigation across questions from different chapters and subjects.
+
+==================================================
+PHASE 13 — STATE RESTORATION
+==================================================
+
+Test this exact sequence:
+
+Question 1:
+select B
+do not check
+
+Next
+
+Question 2:
+select C
+check
+
+Previous
+
+Question 1:
+B is still selected
+Question 1 is still unchecked
+
+Next
+
+Question 2:
+C is still selected
+Question 2 is still checked
+
+Also test screen recreation/rotation.
+
+The current question and answer state must survive normal configuration changes.
+
+Use ViewModel.
+
+Use SavedStateHandle where appropriate for stronger restoration.
+
+==================================================
+PHASE 14 — ERROR HANDLING
+==================================================
+
+Gracefully handle:
+
+- malformed JSON
+- missing fields
+- null metadata
+- empty options
+- unsupported question types
+- invalid image URLs
+- image loading failure
+- WebView rendering failure
+- unexpected HTML markup
+
+Fatal data-loading error:
+
+Show a simple error screen.
+
+Individual rendering problems:
+
+Preserve as much of the question as possible instead of crashing.
+
+==================================================
+PHASE 15 — EDGE CASE TESTING
+==================================================
+
+Do not test only the first question.
+
+Find and test real questions containing:
+
+- very long question text
+- very long option text
+- LaTeX-heavy content
+- MathML-heavy content
+- question images
+- option images
+- image-heavy content
+- previous-year metadata
+- no previous-year metadata
+- video solution available
+- no video solution
+- null optional fields
+
+Verify:
+
+- content scrolls
+- no unexpected clipping
+- bottom actions remain accessible
+- images fit correctly
+- math renders correctly
+- HTML renders correctly
+- entities render correctly
+- no raw LaTeX is displayed
+- no raw MathML is displayed
+- broken images do not crash
+- state remains correct after navigation
+
+==================================================
+PHASE 16 — VISUAL POLISH
+==================================================
+
+After functionality is stable, match the reference design.
+
+Tune:
+
+- spacing
+- margins
+- padding
+- typography
+- font sizes
+- font weights
+- line heights
+- option card dimensions
+- border radius
+- border widths
+- selected state
+- correct state
+- incorrect state
+- feedback indicators
+- button dimensions
+- disabled button appearance
+- colors
+- dark theme surfaces
+
+Do not spend time reproducing the device frame or system status bar.
+
+==================================================
+PHASE 17 — MULTIPLE CORRECT
+==================================================
+
+Only start after the base flow is stable.
+
+For multipleCorrect:
+
+- allow multiple options to be selected
+- clicking an option toggles it
+- maintain selectedOptionIds as a Set
+
+Correct only when:
+
+selectedOptionIds == all option IDs where isCorrect == true
+
+Examples:
+
+Correct:
+{A, C}
+Correct set:
+{A, C}
+
+Incorrect:
+{A}
+
+Incorrect:
+{A, C, D}
+
+After checking:
+
+- show clear checked states
+- distinguish correct and incorrect selections
+- reveal correct options when necessary
+
+Reuse the same architecture and visual language.
+
+==================================================
+PHASE 18 — NUMERICAL
+==================================================
+
+Only start after the base flow is stable.
+
+For numerical questions:
+
+Replace option cards with a numeric input.
+
+Accept:
+
+- integers
+- decimals
+- positive values
+- negative values
+- signed values
+
+If numericalLowerLimit and numericalUpperLimit exist:
+
+value >= lower &&
+value <= upper
+
+The range is inclusive.
+
+If limits do not exist:
+
+compare safely against correctValue.
+
+correctValue may be a JSON number or string.
+
+Preserve:
+
+- entered value
+- checked state
+- navigation state
+
+Invalid input must not crash.
+
+==================================================
+PHASE 19 — TESTS
+==================================================
+
+At minimum create tests for singleCorrect validation.
+
+Test:
+
+- correct option
+- wrong option
+- invalid option
+
+If multipleCorrect is implemented:
+
+- exact set
+- missing correct option
+- extra incorrect option
+
+If numerical is implemented:
+
+- value inside range
+- value outside range
+- exact correct value
+- decimal
+- negative value
+- malformed input
+
+==================================================
+PHASE 20 — README
+==================================================
+
+Create a concise README containing:
+
+1. Overview
+2. Features
+3. Tech stack
+4. Project structure
+5. State-management approach
+6. JSON/data handling
+7. HTML/LaTeX/MathML/image rendering approach
+8. MathJax setup
+9. Build requirements
+10. Build instructions
+11. Test instructions
+12. APK location
+13. Screen-recording link
+14. Known limitations
+
+Document only things that actually exist in the implementation.
+
+==================================================
+PHASE 21 — FINAL VERIFICATION
+==================================================
+
+Run:
+
+./gradlew clean
+./gradlew test
+./gradlew assembleDebug
+
+Fix all failures.
+
+Then verify the APK installs and launches.
+
+Final checklist:
+
+DATA
+[ ] data.json bundled
+[ ] real JSON drives content
+[ ] no hardcoded questions
+[ ] no hardcoded answers
+[ ] no hardcoded IDs
+[ ] subject/chapter relationship preserved
+[ ] original ordering preserved
+[ ] parsing off main thread
+[ ] parsing failure handled
+
+UI
+[ ] unanswered
+[ ] selected
+[ ] checked correct
+[ ] checked wrong
+[ ] light theme
+[ ] dark theme
+[ ] long content scrolling
+[ ] fixed bottom actions
+[ ] visual match
+
+CONTENT
+[ ] HTML
+[ ] LaTeX
+[ ] MathML
+[ ] entities
+[ ] line breaks
+[ ] tables
+[ ] images
+[ ] image failure handling
+[ ] mixed content
+
+METADATA
+[ ] exam
+[ ] chapter
+[ ] question number
+[ ] total
+[ ] previous-year information
+[ ] video indicator
+
+NAVIGATION
+[ ] Previous
+[ ] Next
+[ ] first boundary
+[ ] last boundary
+[ ] state restoration
+[ ] rotation restoration
+
+QUALITY
+[ ] tests pass
+[ ] README complete
+[ ] no credentials
+[ ] no machine-specific paths
+[ ] APK builds successfully
+
+BONUS
+[ ] multipleCorrect, if time permits
+[ ] numerical, if time permits
+
+==================================================
+EXECUTION RULE
+==================================================
+
+Work phase by phase.
+
+After each phase:
+1. Build.
+2. Test what was implemented.
+3. Fix issues.
+4. Report what changed.
+5. Continue to the next phase.
+
+Do not jump ahead when a previous phase is broken.
+
+Base functionality and rich-content rendering have priority over bonus features.
+
+If the actual JSON differs from any example in this plan, inspect the JSON and adapt the implementation to the real structure instead of inventing fields.
