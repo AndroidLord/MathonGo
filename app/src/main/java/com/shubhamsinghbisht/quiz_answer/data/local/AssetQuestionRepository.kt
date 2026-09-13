@@ -11,12 +11,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 
-/**
- * Reads the question bank from `assets/data.json`.
- *
- * Parsing runs on [dispatcher] (IO by default), streamed rather than read into a single String,
- * because the bundled file is a couple of megabytes.
- */
 class AssetQuestionRepository(
     private val context: Context,
     private val assetName: String = ASSET_NAME,

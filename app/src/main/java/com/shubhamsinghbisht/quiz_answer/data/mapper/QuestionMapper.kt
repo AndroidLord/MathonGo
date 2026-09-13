@@ -12,10 +12,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.JsonElement
 
-/**
- * Flattens exam -> subject -> chapter -> question into a single list, preserving the original
- * ordering of the JSON arrays, and copies the subject/chapter context down onto each question.
- */
 fun ExamDto.toQuestionBank(): QuestionBank {
     val flattened = buildList {
         subjects.forEach { subject ->
@@ -36,11 +32,6 @@ fun ExamDto.toQuestionBank(): QuestionBank {
     return QuestionBank(examTitle = title, questions = flattened)
 }
 
-/**
- * Returns null only when the record carries no renderable content at all. [fallbackId] covers the
- * case of a missing `_id`; it is derived from position in the flattened list, never used as the
- * answer-state key when a real id exists.
- */
 private fun QuestionDto.toQuestion(
     examTitle: String?,
     subjectTitle: String?,
@@ -88,7 +79,6 @@ private fun QuestionDto.toNumericalAnswer(): NumericalAnswer {
     )
 }
 
-/** `correctValue` is a JSON string in most records and a JSON number in the rest. */
 private fun JsonElement?.asContentOrNull(): String? {
     val primitive = this as? JsonPrimitive ?: return null
     if (primitive is JsonNull) return null

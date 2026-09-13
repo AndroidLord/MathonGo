@@ -4,12 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
-/**
- * Serialization models mirroring assets/data.json exactly.
- *
- * These stay separate from the domain models: every field is optional with a safe default so a
- * missing or null key in the source file degrades to an absent value instead of throwing.
- */
 @Serializable
 data class ExamDto(
     val title: String? = null,
@@ -31,7 +25,6 @@ data class ChapterDto(
     val questions: List<QuestionDto> = emptyList(),
 )
 
-/** `_id` is an object wrapper in this file: `{"$oid": "64b169c4..."}`, never a bare string. */
 @Serializable
 data class ObjectIdDto(
     @SerialName("\$oid") val oid: String? = null,
@@ -43,14 +36,12 @@ data class QuestionDto(
     val type: String? = null,
     val question: QuestionContentDto? = null,
     val options: List<OptionDto> = emptyList(),
-    /** Numerical answers appear as either a JSON string or a JSON number, so keep it untyped here. */
     val correctValue: JsonElement? = null,
     val numericalLowerLimit: Double? = null,
     val numericalUpperLimit: Double? = null,
     val videoSolution: VideoSolutionDto? = null,
     val isVideoSolutionAvailable: Boolean = false,
     val isRemoved: Boolean = false,
-    /** Plain labels such as "JEE Advanced 2007 (Paper 2)", not objects. */
     val previousYearPapers: List<String> = emptyList(),
 )
 
