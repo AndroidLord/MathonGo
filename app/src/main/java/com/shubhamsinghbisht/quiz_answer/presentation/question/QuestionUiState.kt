@@ -1,17 +1,15 @@
 package com.shubhamsinghbisht.quiz_answer.presentation.question
 
-import com.shubhamsinghbisht.quiz_answer.domain.model.AnswerChecker
 import com.shubhamsinghbisht.quiz_answer.domain.model.Question
-import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AnswerState(
+data class AnswerRecord(
     val selectedOptionIds: Set<String> = emptySet(),
     val numericalInput: String = "",
     val checked: Boolean = false,
 ) {
-    val hasSelection: Boolean get() = selectedOptionIds.isNotEmpty() || numericalInput.isNotBlank()
+    val hasResponse: Boolean get() = selectedOptionIds.isNotEmpty() || numericalInput.isNotBlank()
 }
 
 enum class OptionVisualState {
@@ -32,30 +30,29 @@ sealed interface QuestionUiState {
         val question: Question,
         val questionNumber: Int,
         val totalQuestions: Int,
-        val answer: AnswerState,
+        val record: AnswerRecord,
+        val answerState: QuestionAnswerState,
     ) : QuestionUiState {
 
         val isFirst: Boolean get() = questionNumber <= 1
         val isLast: Boolean get() = questionNumber >= totalQuestions
-        val canCheck: Boolean get() = !answer.checked && answer.hasSelection
+        val canCheck: Boolean get() = answerState is QuestionAnswerState.Selected
+        val isChecked: Boolean get() = record.checked
 
-        val correctness: Boolean?
-            get() = when {
-                !answer.checked -> null
-                question.type == QuestionType.NUMERICAL ->
-                    AnswerChecker.isNumericalCorrect(question, answer.numericalInput)
-                else -> AnswerChecker.isCorrect(question, answer.selectedOptionIds)
-            }
+        fun visualStateOf(optionId: String): OptionVisualState = when (val state = answerState) {
+            QuestionAnswerState.Unanswered -> OptionVisualState.NEUTRAL
 
-        fun visualStateOf(optionId: String): OptionVisualState {
-            val selected = optionId in answer.selectedOptionIds
-            if (!answer.checked) {
-                return if (selected) OptionVisualState.SELECTED else OptionVisualState.NEUTRAL
-            }
-            val isCorrectOption = optionId in question.correctOptionIds
-            return when {
-                isCorrectOption -> OptionVisualState.CORRECT
-                selected -> OptionVisualState.INCORRECT
+            is QuestionAnswerState.Selected ->
+                if (optionId in state.selectedOptionIds) OptionVisualState.SELECTED
+                else OptionVisualState.NEUTRAL
+
+            is QuestionAnswerState.CheckedCorrect ->
+                if (optionId in state.selectedOptionIds) OptionVisualState.CORRECT
+                else OptionVisualState.NEUTRAL
+
+            is QuestionAnswerState.CheckedIncorrect -> when {
+                optionId in state.correctOptionIds -> OptionVisualState.CORRECT
+                optionId in state.selectedOptionIds -> OptionVisualState.INCORRECT
                 else -> OptionVisualState.NEUTRAL
             }
         }

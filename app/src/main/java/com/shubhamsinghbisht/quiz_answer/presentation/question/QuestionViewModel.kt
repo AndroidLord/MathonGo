@@ -3,6 +3,9 @@ package com.shubhamsinghbisht.quiz_answer.presentation.question
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shubhamsinghbisht.quiz_answer.core.util.AnswerChecker
+import com.shubhamsinghbisht.quiz_answer.di.QuestionFlowConfig
+import com.shubhamsinghbisht.quiz_answer.domain.model.Question
 import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionBank
 import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionType
 import com.shubhamsinghbisht.quiz_answer.domain.repository.QuestionRepository
@@ -13,12 +16,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
-class QuestionViewModel(
+@HiltViewModel
+class QuestionViewModel @Inject constructor(
     private val repository: QuestionRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val supportedTypes: Set<QuestionType> = DEFAULT_SUPPORTED_TYPES,
+    private val flowConfig: QuestionFlowConfig,
 ) : ViewModel() {
 
     private val bank = MutableStateFlow<QuestionBank?>(null)
@@ -34,12 +40,14 @@ class QuestionViewModel(
                 else -> {
                     val safeIndex = index.coerceIn(0, loaded.questions.lastIndex)
                     val question = loaded.questions[safeIndex]
+                    val record = answerStates[question.id] ?: AnswerRecord()
                     QuestionUiState.Ready(
                         examTitle = loaded.examTitle,
                         question = question,
                         questionNumber = safeIndex + 1,
                         totalQuestions = loaded.questions.size,
-                        answer = answerStates[question.id] ?: AnswerState(),
+                        record = record,
+                        answerState = answerStateOf(question, record),
                     )
                 }
             }
@@ -54,7 +62,7 @@ class QuestionViewModel(
             errorMessage.value = null
             bank.value = null
             repository.loadQuestions()
-                .map { it.supporting(supportedTypes) }
+                .map { it.supporting(flowConfig.supportedTypes) }
                 .onSuccess { filtered ->
                     if (filtered.questions.isEmpty()) {
                         errorMessage.value = "No questions available for this exam."
@@ -68,7 +76,7 @@ class QuestionViewModel(
 
     fun onOptionClicked(optionId: String) {
         val ready = uiState.value as? QuestionUiState.Ready ?: return
-        if (ready.answer.checked) return
+        if (ready.isChecked) return
         if (ready.question.options.none { it.id == optionId }) return
 
         updateAnswer(ready.question.id) { current ->
@@ -84,7 +92,7 @@ class QuestionViewModel(
 
     fun onNumericalInputChanged(input: String) {
         val ready = uiState.value as? QuestionUiState.Ready ?: return
-        if (ready.answer.checked) return
+        if (ready.isChecked) return
         updateAnswer(ready.question.id) { it.copy(numericalInput = input) }
     }
 
@@ -104,23 +112,35 @@ class QuestionViewModel(
         savedStateHandle[KEY_INDEX] = target
     }
 
-    private fun updateAnswer(questionId: String, transform: (AnswerState) -> AnswerState) {
+    private fun answerStateOf(
+        question: Question,
+        record: AnswerRecord,
+    ): QuestionAnswerState = when {
+        !record.checked && !record.hasResponse -> QuestionAnswerState.Unanswered
+        !record.checked -> QuestionAnswerState.Selected(record.selectedOptionIds)
+        AnswerChecker.isCorrect(question, record.selectedOptionIds) ->
+            QuestionAnswerState.CheckedCorrect(record.selectedOptionIds)
+        else -> QuestionAnswerState.CheckedIncorrect(
+            selectedOptionIds = record.selectedOptionIds,
+            correctOptionIds = question.correctOptionIds,
+        )
+    }
+
+    private fun updateAnswer(questionId: String, transform: (AnswerRecord) -> AnswerRecord) {
         answers.update { current ->
-            val next = current + (questionId to transform(current[questionId] ?: AnswerState()))
+            val next = current + (questionId to transform(current[questionId] ?: AnswerRecord()))
             savedStateHandle[KEY_ANSWERS] = json.encodeToString(next)
             next
         }
     }
 
-    private fun restoreAnswers(): Map<String, AnswerState> {
+    private fun restoreAnswers(): Map<String, AnswerRecord> {
         val stored = savedStateHandle.get<String>(KEY_ANSWERS) ?: return emptyMap()
-        return runCatching { json.decodeFromString<Map<String, AnswerState>>(stored) }
+        return runCatching { json.decodeFromString<Map<String, AnswerRecord>>(stored) }
             .getOrDefault(emptyMap())
     }
 
     companion object {
-        val DEFAULT_SUPPORTED_TYPES = setOf(QuestionType.SINGLE_CORRECT)
-
         private const val KEY_INDEX = "currentQuestionIndex"
         private const val KEY_ANSWERS = "answerStates"
         private val json = Json { ignoreUnknownKeys = true }

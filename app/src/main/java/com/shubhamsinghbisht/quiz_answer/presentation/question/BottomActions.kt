@@ -17,13 +17,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BottomActions(
+    modifier: Modifier = Modifier,
     canGoPrevious: Boolean,
     canGoNext: Boolean,
     canCheck: Boolean,
     onPrevious: () -> Unit,
     onCheck: () -> Unit,
     onNext: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,

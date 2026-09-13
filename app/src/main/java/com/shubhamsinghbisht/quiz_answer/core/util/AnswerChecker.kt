@@ -1,13 +1,20 @@
-package com.shubhamsinghbisht.quiz_answer.domain.model
+package com.shubhamsinghbisht.quiz_answer.core.util
+
+import com.shubhamsinghbisht.quiz_answer.domain.model.Question
+import com.shubhamsinghbisht.quiz_answer.domain.model.QuestionType
+import kotlin.math.abs
 
 object AnswerChecker {
+
+    private const val EPSILON = 1e-6
 
     fun isCorrect(question: Question, selectedOptionIds: Set<String>): Boolean {
         if (selectedOptionIds.isEmpty()) return false
         if (!areValidOptions(question, selectedOptionIds)) return false
         return when (question.type) {
             QuestionType.SINGLE_CORRECT ->
-                selectedOptionIds.size == 1 && selectedOptionIds.single() in question.correctOptionIds
+                selectedOptionIds.size == 1 &&
+                    selectedOptionIds.single() in question.correctOptionIds
             QuestionType.MULTIPLE_CORRECT ->
                 selectedOptionIds == question.correctOptionIds
             QuestionType.NUMERICAL, QuestionType.UNKNOWN -> false
@@ -27,13 +34,9 @@ object AnswerChecker {
         val lower = answer.lowerLimit
         val upper = answer.upperLimit
         if (lower != null && upper != null) {
-            val lo = minOf(lower, upper)
-            val hi = maxOf(lower, upper)
-            return value >= lo - EPSILON && value <= hi + EPSILON
+            return value >= minOf(lower, upper) - EPSILON && value <= maxOf(lower, upper) + EPSILON
         }
         val expected = answer.correctValue ?: return false
-        return kotlin.math.abs(value - expected) <= EPSILON
+        return abs(value - expected) <= EPSILON
     }
-
-    private const val EPSILON = 1e-6
 }
